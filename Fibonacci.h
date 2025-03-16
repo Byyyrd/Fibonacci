@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include "bigint.h"
+#include <bitset>
 #define vec2 sf::Vector2f
 using namespace std;
 
@@ -92,23 +93,43 @@ public:
         data[1][0] = bigint(values.begin()[1].begin()[0]);
         data[1][1] = bigint(values.begin()[1].begin()[1]);
     }
-    Mat2x2 operator *(Mat2x2 other) {
+    Mat2x2 operator *(Mat2x2 &other) {
         return Mat2x2({
             {data[0][0] * other.data[0][0] + data[0][1] * other.data[1][0]  ,   data[0][0] * other.data[1][0] + data[0][1] * other.data[1][1]},
             {data[1][0] * other.data[0][0] + data[1][1] * other.data[1][0]  ,   data[1][0] * other.data[1][0] + data[1][1] * other.data[1][1]}
         });
     }
-    Mat2x2 multiply(Mat2x2 first,Mat2x2 other) {
+    Mat2x2 multiply(Mat2x2 &first,Mat2x2 &other) {
         return Mat2x2({
             {first.data[0][0] * other.data[0][0] + first.data[0][1] * other.data[1][0]  ,   first.data[0][0] * other.data[1][0] + first.data[0][1] * other.data[1][1]},
             {first.data[1][0] * other.data[0][0] + first.data[1][1] * other.data[1][0]  ,   first.data[1][0] * other.data[1][0] + first.data[1][1] * other.data[1][1]}
             });
     }
-    Mat2x2& operator *= (Mat2x2 const other) {
+    Mat2x2& operator *= (Mat2x2 &other) {
         (*this) = (*this) * other;
         return (*this);
     }
+    static Mat2x2 square(Mat2x2 &in) {
+        bigint a = in.data[1][0] * in.data[0][0];
+        return Mat2x2({
+            {in.data[0][0] * in.data[0][0] + in.data[0][1] * in.data[1][0]  ,   a           + in.data[0][1] * in.data[1][1]},
+            {a               + in.data[1][1] * in.data[1][0]  ,   in.data[1][0] * in.data[1][0] + in.data[1][1] * in.data[1][1]}
+        });
+    }
+    static Mat2x2 bin_exp(Mat2x2 &in, int k) {
+        Mat2x2 result = in;
+        const int size = sizeof(int) * 8;
+        std::bitset<size> bits = k;
+        for (int i = log2(k) - 1;i >= 0;i--) {
+            result = Mat2x2::square(result);
+            if (bits[i] == 1) {
+                result *= in;
+            }
+        }
+        return result;
+    }
 };
+
 class BigVec2
 {
 public:
@@ -127,13 +148,14 @@ public:
         return (*this);
     }
 };
+//https://www.mathematik.uni-muenchen.de/~forster/v/zth/inzth_01.pdf
 static bigint fibMatrix(int n) {
     if (n <= 1) {
         return n;
     }
 
     BigVec2 F(0, 1);
-    Mat2x2 A({ {1, 1}, {1,0} });
+    Mat2x2 A({{1, 1}, {1,0} });
     Mat2x2 B(A);
 
     for (int i = 1; i < n;i++) {
@@ -141,9 +163,50 @@ static bigint fibMatrix(int n) {
     }
     F *= A;
     return F.x;
-
-
-
 }
+static bigint fibMatrixBinExp(int n) {
+    if (n <= 1) {
+        return n;
+    }
+
+    BigVec2 F(0, 1);
+    Mat2x2 A({ {1, 1}, {1,0} });
+    A = Mat2x2::bin_exp(A, n);
+    F *= A;
+    return F.x;
+}
+static bigint fibMatrixFastExp(int n) {
+    Mat2x2 step({ {0,1},{1,1} });
+    Mat2x2 fib(step);
+    while (n > 0) {
+        if ((n & 1) != 0) {
+            fib *= step;
+        }
+        step *= step;
+        n >>= 1;
+    }
+    return fib.data[0][0];
+}
+
+
+
+
+
+
+
+//static int bin_exp(int x, int k) {
+//    int result = x;
+//    const int size = sizeof(int) * 8;
+//    std::bitset<size> bits = k;
+//    bool firstOne = false;
+//    for (int i = log2(k) - 1;i >= 0;i--) {
+//        result = pow(result, 2);
+//        if (bits[i] == 1) {
+//            result *= x;
+//        }
+//    }
+//    cout << endl;
+//    return result;
+//}
 
 

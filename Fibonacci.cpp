@@ -37,7 +37,7 @@ static float benchmarkMethod(int n, bigint (*method) (int)) {
     return time;
 }
 
-static bool drawBenshmark(vector<sf::Vertex> *points,int n, bigint(*method) (int),sf::Color color) {
+static bool doBenshmark(vector<sf::Vertex> *points,int n, bigint(*method) (int),sf::Color color) {
     /*for (int i = 0;i < points.size();i++)
     {
         points[i].position.x -= 10;
@@ -87,7 +87,7 @@ vector<vector<sf::Vertex>> visualizeMethods(vector<Algorithm> *algorithms,int *n
     for (Algorithm &algorithm :*algorithms)
     {
         if (!algorithm.exeededTime) {
-            algorithm.exeededTime = drawBenshmark(&algorithm.points, *n, algorithm.code, algorithm.color);
+            algorithm.exeededTime = doBenshmark(&algorithm.points, *n, algorithm.code, algorithm.color);
             oneNotFinished = true;
         }
         pointsToDraw.push_back(transformPoints(algorithm.points, *n, step));
@@ -106,9 +106,10 @@ int main()
     sf::Vertex axes[4];
     vector<Algorithm> algorithms;
     vector<vector<sf::Vertex>> pointsToDraw;
-    algorithms.push_back(Algorithm(&fibBottomUp, sf::Color(255, 0, 0)));
+    //algorithms.push_back(Algorithm(&fibBottomUp, sf::Color(255, 0, 0)));
     algorithms.push_back(Algorithm(&fibMatrix, sf::Color(0,255, 0)));
-    algorithms.push_back(Algorithm(&fibMemo, sf::Color(0,0,255)));
+    algorithms.push_back(Algorithm(&fibMatrixBinExp, sf::Color(0,0,255)));
+    algorithms.push_back(Algorithm(&fibMatrixFastExp, sf::Color(255, 0, 0)));
     setupAxes(&axes[0]);
     while (window.isOpen())
     {
